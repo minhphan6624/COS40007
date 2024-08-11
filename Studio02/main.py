@@ -16,8 +16,9 @@ def convert_strength(strength):
     elif strength >= 50:
         return 5
 
+
 # Plot the distribution of the concrete strength classes
-def plot_distribution(dataframe):
+def plot_distribution(df):
     # Plot the distribution as a bar chart
     class_counts = df["converted_strength"].value_counts().sort_index() # Count the number of instances in each class and sort by index
 
@@ -34,49 +35,80 @@ def plot_distribution(dataframe):
 
 # Convert the age to a categorical value
 def convert_age(df):
+    
     #Count the unique values in the age column,
     unique_ages = np.sort(df["age"].unique())
     unique_age_counts = len(unique_ages)
 
-    print(f"There are {unique_age_counts} unique age values: {unique_ages}")
+    # print(f"There are {unique_age_counts} unique age values: {unique_ages}")
 
     age_mapping = {age: i+1 for i, age in enumerate(unique_ages)}
 
     df["converted_age"] = df["age"].map(age_mapping)
 
-    #convert age to categorical
-    df["age"] = df["age"].astype("category")
-
-    print(df[['age', 'converted_age']].head())
+    # print(df[['age', 'converted_age']].head())
 
 # Normalize the 7 features
 def normalize_features(df):
+
     features_to_normalize = ['cement', 'slag', 'ash', 'water', 'superplastic', 'coarseagg', 'fineagg']
     scaler = MinMaxScaler()
 
-    df[features_to_normalize] = scaler.fit_transform(df[features_to_normalize])
+    normalized_values = scaler.fit_transform(df[features_to_normalize])
+
+    # print(normalized_values)
+
+    new_column_names = [f"{col}_normalized" for col in features_to_normalize]
+
+    for i, new_col in enumerate(new_column_names):
+        df[new_col] = normalized_values[:, i]
 
     df.to_csv('normalized_concrete.csv', index = False)
-    print(df[features_to_normalize].head())
+    # print(df[features_to_normalize].head())
 
+
+def create_composite_features(df):
+    df['cement_slag'] = df[['cement', 'slag']].cov().iloc[0, 1]  # Covariance between 'cement' and 'slag'
+    df['cement_ash'] = df[['cement', 'ash']].cov().iloc[0, 1]    # Covariance between 'cement' and 'ash'
+    df['water_fineagg'] = df[['water', 'fineagg']].cov().iloc[0, 1]  # Covariance between 'water' and 'fineagg'
+    df['ash_superplastic'] = df[['ash', 'superplastic']].cov().iloc[0, 1]  # Covariance between 'ash' and 'superplastic'
+
+def filter_features(df):
+
+    columns_to_keep = [
+        "cement", "water", "superplastic", "age",
+        "cement_slag", "cement_ash", "water_fineagg", "ash_superplastic",
+        "strength"
+    ]
+
+    df_filtered = df[columns_to_keep]
+
+    df_filtered.to_csv('selected_features_concrete.csv', index = False)
 
 def main():
+    # Read original data
     df = pd.read_csv("concrete.csv")
 
+    print(df.shape)
     print(df.head())
 
+    # Convert the strength to a categorical value
     df["converted_strength"] = df["strength"].apply(convert_strength)
-    print(df.shape)    
-
-    #Write to a new file
     df.to_csv('converted_concrete.csv' ,index = False)
-
-    #plot_distribution(df)
     
-    # -- Activity 2 --
+    # plot_distribution(df)
+
     convert_age(df)
 
     normalize_features(df)
+
+    create_composite_features(df)
+
+    new_features = ["converted_age"] + [i for i in df.columns if i.endswith('_normalized')] + ["cement_slag", "cement_ash", "water_fineagg", "ash_superplastic", "converted_strength"]
+
+    df[new_features].to_csv('features_concrete.csv', index = False)
+
+    filter_features(df)
 
 
 if __name__ == "__main__":
