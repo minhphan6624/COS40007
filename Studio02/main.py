@@ -46,7 +46,10 @@ def convert_age(df):
 
     df["converted_age"] = df["age"].map(age_mapping)
 
-    # print(df[['age', 'converted_age']].head())
+    print("converted age")
+    print(df["converted_age"].head()) 
+
+    df[['cement', 'water', 'superplastic', 'converted_age', 'converted_strength']].to_csv('selected_converted_concrete.csv', index=False)
 
 # Normalize the 7 features
 def normalize_features(df):
@@ -56,41 +59,48 @@ def normalize_features(df):
 
     normalized_values = scaler.fit_transform(df[features_to_normalize])
 
-    # print(normalized_values)
-
     new_column_names = [f"{col}_normalized" for col in features_to_normalize]
 
-    for i, new_col in enumerate(new_column_names):
-        df[new_col] = normalized_values[:, i]
+    for feature in features_to_normalize:
+        df[f"{feature}_normalized"] = normalized_values[:, features_to_normalize.index(feature)]
 
-    df.to_csv('normalized_concrete.csv', index = False)
-    # print(df[features_to_normalize].head())
+    print("Normalized features")
+    print(df.head())
+
+    df[new_column_names + ["converted_age", "converted_strength"]].to_csv('normalized_concrete.csv', index=False)
 
 
 def create_composite_features(df):
-    df['cement_slag'] = df[['cement', 'slag']].cov().iloc[0, 1]  # Covariance between 'cement' and 'slag'
-    df['cement_ash'] = df[['cement', 'ash']].cov().iloc[0, 1]    # Covariance between 'cement' and 'ash'
-    df['water_fineagg'] = df[['water', 'fineagg']].cov().iloc[0, 1]  # Covariance between 'water' and 'fineagg'
-    df['ash_superplastic'] = df[['ash', 'superplastic']].cov().iloc[0, 1]  # Covariance between 'ash' and 'superplastic'
+    df['cement_slag'] = df[['cement_normalized', 'slag_normalized']].cov().iloc[0, 1]  # Covariance between 'cement' and 'slag'
+    df['cement_ash'] = df[['cement_normalized', 'ash_normalized']].cov().iloc[0, 1]    # Covariance between 'cement' and 'ash'
+    df['water_fineagg'] = df[['water_normalized', 'fineagg_normalized']].cov().iloc[0, 1]  # Covariance between 'water' and 'fineagg'
+    df['ash_superplastic'] = df[['ash_normalized', 'superplastic_normalized']].cov().iloc[0, 1]  # Covariance between 'ash' and 'superplastic'
+
+    print("Composite features")
+    print(df.head())
+    
+    new_features = ["converted_age", 'cement_normalized', 'slag_normalized', 'ash_normalized', 'water_normalized', 'superplastic_normalized', 'coarseagg_normalized', 'fineagg_normalized'] + ["cement_slag", "cement_ash", "water_fineagg", "ash_superplastic", "converted_strength"]
+
+    df[new_features].to_csv('features_concrete.csv', index = False)
+    print(df[new_features].head())
 
 def filter_features(df):
 
     columns_to_keep = [
-        "cement", "water", "superplastic", "age",
+        'cement_normalized', 'water_normalized', 'superplastic_normalized', "converted_age",
         "cement_slag", "cement_ash", "water_fineagg", "ash_superplastic",
-        "strength"
+        "converted_strength"
     ]
 
     df_filtered = df[columns_to_keep]
+    print("Filtered features")
+    print(df_filtered.head())
 
     df_filtered.to_csv('selected_features_concrete.csv', index = False)
 
 def main():
     # Read original data
     df = pd.read_csv("concrete.csv")
-
-    print(df.shape)
-    print(df.head())
 
     # Convert the strength to a categorical value
     df["converted_strength"] = df["strength"].apply(convert_strength)
@@ -103,10 +113,6 @@ def main():
     normalize_features(df)
 
     create_composite_features(df)
-
-    new_features = ["converted_age"] + [i for i in df.columns if i.endswith('_normalized')] + ["cement_slag", "cement_ash", "water_fineagg", "ash_superplastic", "converted_strength"]
-
-    df[new_features].to_csv('features_concrete.csv', index = False)
 
     filter_features(df)
 

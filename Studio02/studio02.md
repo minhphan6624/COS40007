@@ -4,3 +4,6 @@
 
 # Activity 2 - Feature engineering
 
+# Activity 5 - Summarization
+Accuracy comparision
+- Model 1
