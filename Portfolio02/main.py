@@ -20,6 +20,10 @@ def remove_outliers_iqr(df, column):
     df = df[(df[column] >= lower_bound) & (df[column] <= upper_bound)]
     return df
 
+def fill_missing_values(df, column):
+    df[column] = df[column].fillna(df[column].mean())
+    return df
+
 def visualize_boxplot(df, column):
     plt.figure(figsize=(6, 4))
     df.boxplot([column])
@@ -56,6 +60,16 @@ def main():
     df = remove_outliers_iqr(df, "Trihalomethanes")
     df = remove_outliers_iqr(df, "Turbidity")
 
+    # df = fill_missing_values(df, "ph")
+    # df = fill_missing_values(df, "Hardness")
+    # df = fill_missing_values(df, "Solids")
+    # df = fill_missing_values(df, "Chloramines")
+    # df = fill_missing_values(df, "Sulfate")
+    # df = fill_missing_values(df, "Conductivity")
+    # df = fill_missing_values(df, "Organic_carbon")
+    # df = fill_missing_values(df, "Trihalomethanes")
+    # df = fill_missing_values(df, "Turbidity")
+
     print(f"Number of rows after removing outliers: {df.shape[0]}")
 
     # -- Handle missing data
@@ -71,14 +85,14 @@ def main():
     df.describe().to_csv("summary_statistics.csv")
 
     # Univariate analysis
-    cols = [i for i in df.columns if i not in ['Potability']]
+    # cols = [i for i in df.columns if i not in ['Potability']]
 
-    for column in cols:
-         # Plot the histogram with KDE
-        plt.figure(figsize=(8, 4))
-        sns.histplot(data=df, x=column, kde=True, bins=20)
-        plt.title(f'Distribution of {column}')
-        plt.show()
+    # for column in cols:
+    #      # Plot the histogram with KDE
+    #     plt.figure(figsize=(8, 4))
+    #     sns.histplot(data=df, x=column, kde=True, bins=20)
+    #     plt.title(f'Distribution of {column}')
+    #     plt.show()
 
 
     # Multi-variate analysis
@@ -87,7 +101,15 @@ def main():
 
     # Correlation matrix via heatmap
     # Check the Correlation
-    print(df.corr())
+    corr = abs(df.corr())
+
+    lower_triangle = np.tril(corr, k=-1) # Exclude the diagonal
+    mask = lower_triangle == 0 # Mask the upper triangle
+
+    plt.figure(figsize=(12,10))
+    sns.heatmap(lower_triangle, center=0.5, cmap='coolwarm', annot=True, xticklabels = corr.index, yticklabels = corr.columns,
+            cbar= True, linewidths= 1, mask = mask)   # Da Heatmap
+    plt.show()
 
 
 
