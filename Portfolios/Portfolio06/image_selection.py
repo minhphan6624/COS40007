@@ -4,12 +4,12 @@ import shutil
 import pandas as pd
 
 # Define folder paths
-images_folder = 'data/iamges/train'
-selected_images_folder = '/path/to/your/yolov5/dataset/train/images'
-selected_annotations_folder = '/path/to/your/yolov5/dataset/train/labels'
+images_folder = 'data/images/train'
+selected_images_folder = '../../../../../references/yolov5/dataset/train/images'
+selected_annotations_folder = '../../../../../references/yolov5/dataset/train/labels'
 
 # Load the annotations CSV file
-annotations_csv = '/path/to/train_yolo_annotations.csv'
+annotations_csv = 'data/train_yolo_annotations.csv'
 annotations_df = pd.read_csv(annotations_csv)
 
 # List all unique image files in the annotations
