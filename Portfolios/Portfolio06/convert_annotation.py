@@ -9,7 +9,7 @@ def convert_to_yolo(data):
     yolo_annotations = []
 
     for _, row in data.iterrows():
-        class_id = 1 if row['class'] == 'Graffiti' else 0 # 1 for graffiti, 0 for not graffiti
+        class_id = 0 if row['class'] == 'Graffiti' else 1 # 0 for graffiti, 1 for not graffiti
         x_center = (row['xmin'] + row['xmax']) / 2 / row['width']
         y_center = (row['ymin'] + row['ymax']) / 2 / row['height']
         box_width = (row['xmax'] - row['xmin']) / row['width']
