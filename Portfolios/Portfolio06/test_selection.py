@@ -2,32 +2,27 @@ import os
 import random
 import shutil
 
-# Define folder paths
-test_images_source_folder = 'data/images/test'  # Folder where all test images are stored
+# Paths to the original test dataset 
+test_images_dir = 'data/images/test'
 
-# YOLOv5 test folder (where the selected test images will be moved)
-yolo_test_images_folder = '../../../../../references/yolov5/dataset/test/images'
+selected_test_images_dir = 'dataset/test/images'
 
-# Ensure the YOLOv5 test images folder is cleared before copying new images
-def clear_folder(folder_path):
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+os.makedirs(selected_test_images_dir, exist_ok=True)
 
-clear_folder(yolo_test_images_folder)
+# Get all image filenames for training and testing
+test_image_filenames = [f for f in os.listdir(test_images_dir) if f.endswith(('.jpg', '.JPG'))]
 
-# List all test images (handling both .jpg and .JPG extensions)
-all_test_images = [f for f in os.listdir(test_images_source_folder) if f.lower().endswith('.jpg')]
+# Randomly select 400 images for training and 40 for testing
+selected_test_images = random.sample(test_image_filenames, 40)
 
-# Randomly select 40 test images
-selected_test_images = random.sample(all_test_images, 40)
+# Function to copy only images (for test set)
+def copy_images_only(image_list, source_img_dir, dest_img_dir):
+    for image in image_list:
+        src_image_path = os.path.join(source_img_dir, image)
+        dest_image_path = os.path.join(dest_img_dir, image)
+        shutil.copy(src_image_path, dest_image_path)
 
-# Copy selected images to the YOLOv5 test images folder
-for image in selected_test_images:
-    image_path = os.path.join(test_images_source_folder, image)
-    
-    # Move the image to the YOLOv5 test images folder
-    shutil.copy(image_path, yolo_test_images_folder)
+# Copy selected test images (no labels yet)
+copy_images_only(selected_test_images, test_images_dir, selected_test_images_dir)
 
-print(f"40 test images have been successfully copied to the YOLOv5 test folder.")
+print("Selected test images have been copied.")
